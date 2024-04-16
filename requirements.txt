@@ -1,0 +1,13 @@
+diffusers==0.26.1
+edge_tts==6.1.9
+langchain==0.1.16
+moviepy==1.0.3
+numpy==1.26.4
+openai==1.19.0
+opencv_python==4.9.0.80
+parsel==1.8.1
+protobuf==5.26.1
+pydub==0.25.1
+Requests==2.31.0
+torch==2.1.2
+tqdm==4.65.0
