@@ -4,9 +4,10 @@
  Author: Sanfor Chow
  Date: 2024-03-13 08:47:59
  LastEditors: Sanfor Chow
- LastEditTime: 2024-04-16 17:39:49
+ LastEditTime: 2024-04-17 18:27:33
  FilePath: /story-vision/main.py
 '''
+import os
 import re
 import cv2
 import json
@@ -14,7 +15,7 @@ import time
 import asyncio
 import numpy as np
 from pydub import AudioSegment
-from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from my_lls import story_board, illu_stration, story_board_for_genai, illu_stration_for_genai
 from my_sd import sd_cetus
 from my_tts import tts_function
@@ -81,18 +82,33 @@ def story_llm(file_path):
         for k,v in s.items():
             text += k + ':' + v + '\n'
         illu = illu_stration_for_genai(text=text)
+        time.sleep(5)
         data['illu_stration'].append({'id': con, 'story': s, 'illu': illu})
     
     content = replace_non_gb2312(data['content'])
     illu_stration = []
     for i in data['illu_stration']:
+        print(i['story']['原文描述'])
         pattern = r'.*?' + replace_non_gb2312(i['story']['原文描述'])
-        matches = re.findall(pattern, content, flags=re.DOTALL)
+        try:
+            matches = re.findall(pattern, content, flags=re.DOTALL)
+        except:
+            matches = []
         if len(matches) == 0:
             pattern = r'.*?'+i['story']['原文描述'].split("，")[0]
-            matches = re.findall(pattern, content, flags=re.DOTALL)
-        content = re.sub(pattern, '', content, flags=re.DOTALL)
-        i['story']['原文描述'] = matches[0]
+            try:
+                matches = re.findall(pattern, content, flags=re.DOTALL)
+            except:
+                matches = []
+        try:
+            content = re.sub(pattern, '', content, flags=re.DOTALL)
+        except:
+            pass
+        i['原文'] = matches
+        try:
+            i['story']['原文描述'] = matches[0]
+        except IndexError:
+            pass
         illu_stration.append(i)
     data['illu_stration'] = illu_stration
 
@@ -116,7 +132,10 @@ def story_tts(file_path):
 
     file_name = file_path.split('/')[-1].split('.')[0]
     for i in data['illu_stration']:
-        asyncio.run(tts_function(save_name=file_name+'_'+str(i['id']), text=i['原文'][0]))
+        if len(i['原文']) > 0:
+            asyncio.run(tts_function(save_name=file_name+'_'+str(i['id']), text=i['原文'][0]))
+        else:
+            asyncio.run(tts_function(save_name=file_name+'_'+str(i['id']), text=i['story']['原文描述'][0]))
 
 def stitch_videos(file_path):
     fps = 25  # 设置视频帧率
@@ -169,7 +188,35 @@ def stitch_videos(file_path):
 
 
 if __name__ == '__main__':
-    story_llm(file_path="data/txt/学姐别怕，我来保护你/第1章 进局子了.json")
-    # story_sd(file_path="data/txt/学姐别怕，我来保护你/第1章 进局子了.json")
-    # story_tts(file_path="data/txt/学姐别怕，我来保护你/第1章 进局子了.json")
-    # stitch_videos(file_path="data/txt/学姐别怕，我来保护你/第1章 进局子了.json")
+    base_path = r'data/txt/学姐别怕，我来保护你'
+    files = os.listdir(base_path)
+    files.sort(key=lambda x: int(x.split('第')[1].split('章')[0]))
+    for path in files:
+        file_path = os.path.join(base_path, path)
+        story_llm(file_path)
+
+    for path in files:
+        file_path = os.path.join(base_path, path)
+        story_sd(file_path)
+
+    for path in files:
+        file_path = os.path.join(base_path, path)
+        story_tts(file_path)
+
+    for path in files:
+        file_path = os.path.join(base_path, path)
+        stitch_videos(file_path)
+
+
+    clips = []
+    base_path = r'data/video'
+    files = os.listdir(base_path)
+    files.sort(key=lambda x: int(x.split('第')[1].split('章')[0]))
+    for path in files:
+        if '_out' in path:
+            full_path = os.path.join(base_path, path)
+            clip = VideoFileClip(full_path)
+            clips.append(clip)
+    
+    final_clip = concatenate_videoclips(clips)
+    final_clip.write_videofile("data/video/merged_video.mp4")
