@@ -4,7 +4,7 @@
  Author: Sanfor Chow
  Date: 2024-02-01 00:39:32
  LastEditors: Sanfor Chow
- LastEditTime: 2024-04-16 16:31:31
+ LastEditTime: 2024-04-23 14:23:31
  FilePath: /story-vision/my_sd.py
 '''
 from diffusers import StableDiffusionPipeline
@@ -23,5 +23,5 @@ def sd_cetus(save_name, prompt):
     generator = torch.Generator("mps").manual_seed(31)
 
     prompt = prompt
-    image = pipeline(prompt).images[0]
+    image = pipeline(prompt, height=512, width=768, generator=generator).images[0]
     image.save('data/img/'+ save_name +'.jpg')
