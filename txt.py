@@ -4,7 +4,7 @@
  Author: Sanfor Chow
  Date: 2024-03-13 09:27:10
  LastEditors: Sanfor Chow
- LastEditTime: 2024-03-13 10:36:32
+ LastEditTime: 2024-05-16 19:47:25
  FilePath: /story-vision/txt.py
 '''
 import re, os, time, json
@@ -14,33 +14,435 @@ from tqdm import tqdm
 
 
 
+cmap = {
+    "gid58404": "爱",
+    "gid58609": "总",
+    "gid58347": "特",
+    "gid58431": "叫",
+    "gid58498": "r",
+    "gid58545": "天",
+    "gid58444": "色",
+    "gid58433": "M",
+    "gid58647": "和",
+    "gid58592": "果",
+    "gid58575": "c",
+    "gid58353": "4",
+    "gid58567": "满",
+    "gid58572": "患",
+    "gid58380": "世",
+    "gid58557": "记",
+    "gid58386": "V",
+    "gid58635": "想",
+    "gid58530": "从",
+    "gid58654": "这",
+    "gid58438": "尔",
+    "gid58501": "位",
+    "gid58425": "何",
+    "gid58344": "D",
+    "gid58356": "V",
+    "gid58457": "道",
+    "gid58659": "格",
+    "gid58430": "I",
+    "gid58714": "们",
+    "gid58554": "本",
+    "gid58414": "未",
+    "gid58434": "士",
+    "gid58688": "B",
+    "gid58423": "常",
+    "gid58412": "被",
+    "gid58525": "活",
+    "gid58677": "老",
+    "gid58453": "t",
+    "gid58396": "鸣",
+    "gid58351": "果",
+    "gid58569": "做",
+    "gid58583": "部",
+    "gid58598": "往",
+    "gid58463": "未",
+    "gid58573": "如",
+    "gid58497": "法",
+    "gid58558": "l",
+    "gid58355": "以",
+    "gid58615": "路",
+    "gid58365": "岁",
+    "gid58538": "二",
+    "gid58487": "看",
+    "gid58638": "分",
+    "gid58610": "d",
+    "gid58485": "日",
+    "gid58397": "u",
+    "gid58460": "克",
+    "gid58532": "知",
+    "gid58474": "没",
+    "gid58644": "次",
+    "gid58455": "认",
+    "gid58488": "但",
+    "gid58415": "乐",
+    "gid58382": "都",
+    "gid58678": "2",
+    "gid58667": "亲",
+    "gid58471": "同",
+    "gid58400": "张",
+    "gid58502": "利",
+    "gid58405": "两",
+    "gid58571": "K",
+    "gid58547": "德",
+    "gid58504": "声",
+    "gid58472": "水",
+    "gid58691": "e",
+    "gid58623": "开",
+    "gid58411": "通",
+    "gid58707": "期",
+    "gid58372": "出",
+    "gid58625": "许",
+    "gid58500": "应",
+    "gid58617": "心",
+    "gid58475": "未",
+    "gid58704": "便",
+    "gid58594": "光",
+    "gid58618": "界",
+    "gid58390": "T",
+    "gid58470": "万",
+    "gid58514": "X",
+    "gid58395": "立",
+    "gid58649": "j",
+    "gid58608": "发",
+    "gid58528": "到",
+    "gid58577": "给",
+    "gid58517": "N",
+    "gid58665": "无",
+    "gid58416": "接",
+    "gid58641": "国",
+    "gid58489": "第",
+    "gid58522": "对",
+    "gid58604": "能",
+    "gid58536": "点",
+    "gid58660": "长",
+    "gid58409": "东",
+    "gid58556": "过",
+    "gid58480": "5",
+    "gid58696": "也",
+    "gid58555": "q",
+    "gid58357": "和",
+    "gid58627": "至",
+    "gid58496": "有",
+    "gid58687": "P",
+    "gid58410": "性",
+    "gid58653": "才",
+    "gid58631": "n",
+    "gid58467": "民",
+    "gid58451": "师",
+    "gid58568": "体",
+    "gid58566": "原",
+    "gid58493": "上",
+    "gid58702": "每",
+    "gid58713": "海",
+    "gid58401": "学",
+    "gid58637": "么",
+    "gid58540": "8",
+    "gid58602": "处",
+    "gid58548": "听",
+    "gid58523": "所",
+    "gid58621": "力",
+    "gid58363": "现",
+    "gid58595": "未",
+    "gid58542": "b",
+    "gid58378": "直",
+    "gid58450": "难",
+    "gid58646": "风",
+    "gid58663": "年",
+    "gid58590": "一",
+    "gid58458": "S",
+    "gid58481": "为",
+    "gid58710": "外",
+    "gid58508": "马",
+    "gid58437": "变",
+    "gid58675": "重",
+    "gid58622": "多",
+    "gid58673": "下",
+    "gid58473": "新",
+    "gid58633": "与",
+    "gid58361": "还",
+    "gid58709": "C",
+    "gid58543": "正",
+    "gid58503": "你",
+    "gid58486": "教",
+    "gid58387": "O",
+    "gid58370": "月",
+    "gid58662": "间",
+    "gid58373": "战",
+    "gid58482": "y",
+    "gid58582": "笑",
+    "gid58639": "生",
+    "gid58519": "X",
+    "gid58596": "头",
+    "gid58374": "工",
+    "gid58614": "入",
+    "gid58684": "之",
+    "gid58439": "快",
+    "gid58421": "公",
+    "gid58507": "问",
+    "gid58371": "3",
+    "gid58440": "l",
+    "gid58559": "i",
+    "gid58452": "放",
+    "gid58671": "友",
+    "gid58348": "家",
+    "gid58383": "平",
+    "gid58624": "已",
+    "gid58345": "在",
+    "gid58560": "打",
+    "gid58476": "电",
+    "gid58389": "真",
+    "gid58700": "了",
+    "gid58495": "住",
+    "gid58468": "与",
+    "gid58469": "把",
+    "gid58694": "穆",
+    "gid58394": "会",
+    "gid58515": "a",
+    "gid58385": "什",
+    "gid58462": "度",
+    "gid58368": "此",
+    "gid58544": "或",
+    "gid58692": "9",
+    "gid58570": "经",
+    "gid58581": "最",
+    "gid58599": "自",
+    "gid58432": "轻",
+    "gid58587": "受",
+    "gid58640": "口",
+    "gid58391": "那",
+    "gid58708": "中",
+    "gid58681": "m",
+    "gid58676": "已",
+    "gid58499": "事",
+    "gid58645": "四",
+    "gid58491": "候",
+    "gid58593": "动",
+    "gid58461": "地",
+    "gid58512": "比",
+    "gid58464": "好",
+    "gid58632": "小",
+    "gid58531": "]",
+    "gid58420": "山",
+    "gid58379": "失",
+    "gid58399": "十",
+    "gid58603": "大",
+    "gid58706": "数",
+    "gid58484": "几",
+    "gid58427": "话",
+    "gid58669": "结",
+    "gid58674": "却",
+    "gid58534": "丙",
+    "gid58456": "面",
+    "gid58658": "神",
+    "gid58620": "h",
+    "gid58406": "命",
+    "gid58513": "文",
+    "gid58619": "h",
+    "gid58446": "安",
+    "gid58350": "然",
+    "gid58699": "方",
+    "gid58511": "Y",
+    "gid58613": "手",
+    "gid58685": "前",
+    "gid58398": "是",
+    "gid58392": "当",
+    "gid58703": "理",
+    "gid58629": "很",
+    "gid58428": "先",
+    "gid58375": "相",
+    "gid58435": "w",
+    "gid58516": "H",
+    "gid58426": "可",
+    "gid58679": "音",
+    "gid58661": "觉",
+    "gid58509": "女",
+    "gid58478": "像",
+    "gid58407": "全",
+    "gid58424": "以",
+    "gid58441": "个",
+    "gid58494": "拉",
+    "gid58418": "感",
+    "gid58601": "成",
+    "gid58520": "边",
+    "gid58701": "英",
+    "gid58354": "要",
+    "gid58712": "a",
+    "gid58537": "Q",
+    "gid58656": "E",
+    "gid58359": "6",
+    "gid58510": "他",
+    "gid58429": "p",
+    "gid58578": "便",
+    "gid58479": "斯",
+    "gid58693": "起",
+    "gid58449": "7",
+    "gid58636": "代",
+    "gid58588": "k",
+    "gid58711": "样",
+    "gid58436": "着",
+    "gid58384": "文",
+    "gid58634": "Z",
+    "gid58521": "美",
+    "gid58535": "区",
+    "gid58690": "人",
+    "gid58377": "男",
+    "gid58524": "金",
+    "gid58672": "信",
+    "gid58369": "象",
+    "gid58683": "明",
+    "gid58388": "将",
+    "gid58527": "意",
+    "gid58417": "而",
+    "gid58576": "G",
+    "gid58565": "去",
+    "gid58443": "少",
+    "gid58686": "高",
+    "gid58630": "界",
+    "gid58666": "不",
+    "gid58597": "见",
+    "gid58715": "仁",
+    "gid58579": "物",
+    "gid58541": "R",
+    "gid58612": "死",
+    "gid58670": "0",
+    "gid58652": "情",
+    "gid58648": "带",
+    "gid58465": "机",
+    "gid58364": "j",
+    "gid58466": "U",
+    "gid58682": "呢",
+    "gid58574": "孩",
+    "gid58563": "就",
+    "gid58533": "又",
+    "gid58454": "报",
+    "gid58360": "别",
+    "gid58651": "实",
+    "gid58413": "1",
+    "gid58600": "解",
+    "gid58561": "f",
+    "gid58695": "她",
+    "gid58505": "身",
+    "gid58606": "名",
+    "gid58586": "等",
+    "gid58680": "字",
+    "gid58591": "条",
+    "gid58539": "定",
+    "gid58607": "其",
+    "gid58402": "气",
+    "gid58697": "W",
+    "gid58628": "由",
+    "gid58526": "回",
+    "gid58552": "告",
+    "gid58562": "人",
+    "gid58352": "场",
+    "gid58422": "了",
+    "gid58447": "化",
+    "gid58611": "的",
+    "gid58448": "远",
+    "gid58564": "者",
+    "gid58705": "四",
+    "gid58346": "主",
+    "gid58492": "作",
+    "gid58551": "得",
+    "gid58376": "O",
+    "gid58349": "军",
+    "gid58483": "白",
+    "gid58698": "用",
+    "gid58442": "说",
+    "gid58362": "g",
+    "gid58668": "关",
+    "gid58546": "百",
+    "gid58408": "后",
+    "gid58403": "大",
+    "gid58643": "望",
+    "gid58626": "d",
+    "gid58605": "于",
+    "gid58419": "车",
+    "gid58689": "目",
+    "gid58490": "加",
+    "gid58664": "眼",
+    "gid58616": "进",
+    "gid58657": "我",
+    "gid58381": "F",
+    "gid58589": "行",
+    "gid58477": "吃",
+    "gid58642": "妈",
+    "gid58549": "更",
+    "gid58518": "S",
+    "gid58445": "里",
+    "gid58585": "员",
+    "gid58553": "并",
+    "gid58529": "z",
+    "gid58506": "国"
+}
+
 headers = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
 }
 
-book_id = 7207072067127086118
-url = f'https://fanqienovel.com/page/{str(book_id)}'
-response = requests.get(url=url, headers=headers)
-html_data = response.text
+def get_items(book_id):
+    url = f'https://fanqienovel.com/page/{str(book_id)}'
 
-name = re.findall('<div class="info-name"><h1>(.*?)</h1', html_data)[0]
-selector = parsel.Selector(html_data)
-css_name = selector.css('.info-name h1::text').get()
-href = selector.css('.chapter-item a::attr(href)').getall()
-print(f'{name}, 小说正在下载, 请稍后....')
-if not os.path.exists(f'data/txt/{name}'):
-    os.makedirs(f'data/txt/{name}')
-else:
-    print("文件夹已经存在")
-for index in tqdm(href):
-    chapter_id = index.split('/')[-1]
-    link = f'https://novel.snssdk.com/api/novel/book/reader/full/v1/?device_platform=android&parent_enterfrom=novel_channel_search.tab.&aid=2329&platform_id=1&group_id={chapter_id}&item_id={chapter_id}'
-    time.sleep(30)
+    response = requests.get(url=url, headers=headers)
+    html_data = response.text
+
+    book_name = re.findall('<div class="info-name"><h1>(.*?)</h1', html_data)[0]
+    selector = parsel.Selector(html_data)
+    css_name = selector.css('.info-name h1::text').get()
+    items = selector.css('.chapter-item a::attr(href)').getall()
+
+    return items, book_name
+
+def get_content(chapter_id):
+    link = f'https://fanqienovel.com/api/reader/full?itemId={chapter_id}'
     res = requests.get(url=link, headers=headers)
-    print(res.status_code, res, link)
-    json_data = res.json()['data']['content']
-    title = re.findall('<div class="tt-title">(.*?)</div>', json_data)[0]
+    print(res.status_code, res.text)
+    data = res.json()
+
+    title = data['data']['chapterData']['title']
+    json_data = data['data']['chapterData']['content']
     content = '\n'.join(re.findall('<p>(.*?)</p>', json_data))
-    with open(f'data/txt/{name}/{title}.json', "w", encoding='utf-8') as json_file:
-        json.dump({'title':title,  'content':content}, json_file, ensure_ascii=False)
-    time.sleep(120)
+
+    content_ext = ''
+    for i in content:
+        if 'gid' + str(ord(i)) in cmap.keys():
+            i = cmap['gid' + str(ord(i))]
+        content_ext += i
+
+    return title, content_ext
+
+def extract_chapters(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    chapters = re.split(r'^第\w+章\s+', content, flags=re.MULTILINE)[1:]
+
+    return chapters
+
+def save_as_json(chapters, output_folder):
+    for i, chapter in enumerate(chapters):
+        chapter_data = {
+            "title": chapter.split('\n', 1)[0].strip(),  # 提取章节标题
+            "content": chapter.split('\n', 1)[1].strip() if '\n' in chapter else chapter.strip()  # 提取章节内容
+        }
+        with open(f"{output_folder}/{i+1}.json", 'w', encoding='utf-8') as json_file:
+            json.dump(chapter_data, json_file, ensure_ascii=False, indent=4)
+        json_file.close()
+
+
+if __name__=="__main__":
+    items, book_name = get_items(book_id=7207072067127086118)
+
+    if not os.path.exists(f'data/txt/{book_name}'):
+        os.makedirs(f'data/txt/{book_name}')
+
+    for index in tqdm(items):
+        chapter_id = index.split('/')[-1]
+        title, content = get_content(chapter_id=chapter_id)
+
+        with open(f'data/txt/{book_name}/{title}.json', "w", encoding='utf-8') as json_file:
+            json.dump({'title':title,  'content':content}, json_file, ensure_ascii=False)
+        json_file.close()
